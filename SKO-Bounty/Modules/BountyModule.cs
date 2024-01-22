@@ -1,4 +1,8 @@
-﻿using Sandbox.Game.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.Weapons;
@@ -7,10 +11,6 @@ using SKO.Bounty.Configurations;
 using SKO.Bounty.Data;
 using SKO.Bounty.Models;
 using SKO.Torch.Shared.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using VRage.Game.ModAPI;
 
 namespace SKO.Bounty.Modules
@@ -37,12 +37,12 @@ namespace SKO.Bounty.Modules
             SKOBountyPlugin.Log.Warn($"> MyCubeBlock: {obj is MyCubeBlock}");
             SKOBountyPlugin.Log.Warn($"> IMyCubeGrid: {obj is IMyCubeGrid}");
             SKOBountyPlugin.Log.Warn($"> IMyPlayer: {obj is IMyPlayer}");
-            SKOBountyPlugin.Log.Warn($"> IMyHandheldGunObject<MyGunBase>: {obj is IMyHandheldGunObject<MyGunBase>}");
+            SKOBountyPlugin.Log.Warn($"> IMyHandheldGunObject<MyGunBase>: {obj is IMyHandheldGunObject < MyGunBase >}");
             SKOBountyPlugin.Log.Warn(
-                $"> IMyHandheldGunObject<MyToolBase>: {obj is IMyHandheldGunObject<MyToolBase>}");
+                $"> IMyHandheldGunObject<MyToolBase>: {obj is IMyHandheldGunObject < MyToolBase >}");
             SKOBountyPlugin.Log.Warn(
-                $"> IMyHandheldGunObject<MyToolBase>: {obj is IMyHandheldGunObject<MyToolBase>}");
-            SKOBountyPlugin.Log.Warn($"> IMyGunObject: {obj is IMyGunObject<MyGunBase>}");
+                $"> IMyHandheldGunObject<MyToolBase>: {obj is IMyHandheldGunObject < MyToolBase >}");
+            SKOBountyPlugin.Log.Warn($"> IMyGunObject: {obj is IMyGunObject < MyGunBase >}");
             SKOBountyPlugin.Log.Warn($"> IMyGunBaseUser: {obj is IMyGunBaseUser}");
             SKOBountyPlugin.Log.Warn($"> IMyMissile: {obj is IMyMissile}");
             SKOBountyPlugin.Log.Warn($"> Attacker-Type: {obj.GetType().FullName}");
@@ -366,9 +366,9 @@ namespace SKO.Bounty.Modules
         public static PlayerBountyContract GetPlayerContract(long targetId, long contractorId,
             BountyContractState state = BountyContractState.Active)
         {
-            var contract = Contracts.PlayerContracts.Where(c =>
-                    c.State == state && c.TargetPlayerId == targetId && c.ContractorPlayerId == contractorId)
-                .FirstOrDefault();
+            var contract = Contracts.PlayerContracts
+                .FirstOrDefault(c =>
+                    c.State == state && c.TargetPlayerId == targetId && c.ContractorPlayerId == contractorId);
             return contract;
         }
 

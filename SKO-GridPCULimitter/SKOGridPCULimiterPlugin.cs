@@ -1,12 +1,12 @@
-﻿using NLog;
+﻿using System;
+using System.Linq;
+using NLog;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using SKO.Torch.Shared.Utils;
-using System;
-using System.Linq;
 using Torch;
 using Torch.API;
 using Torch.API.Managers;
@@ -201,13 +201,13 @@ namespace SKO.GridPCULimiter
 
                     var gridGroups = GridUtils.FindGridList(player.IdentityId, true);
                     foreach (var gridGroup in gridGroups)
-                        foreach (var grid in gridGroup)
-                        {
-                            var welders = GridUtils.GetBlocks<IMyShipWelder>(grid);
-                            foreach (var welder in welders) ((IMyShipWelder)welder.FatBlock).Enabled = false;
+                    foreach (var grid in gridGroup)
+                    {
+                        var welders = GridUtils.GetBlocks<IMyShipWelder>(grid);
+                        foreach (var welder in welders) ((IMyShipWelder)welder.FatBlock).Enabled = false;
 
-                            grid.RaiseGridChanged();
-                        }
+                        grid.RaiseGridChanged();
+                    }
                 }
             }
         }

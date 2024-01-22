@@ -1,16 +1,16 @@
-﻿using Sandbox.Game.Entities;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Timers;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.World;
 using Sandbox.Game.WorldEnvironment;
 using Sandbox.ModAPI;
 using SKO.Torch.Shared.Plugin;
 using SKO.Torch.Shared.Utils;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Timers;
 using VRageMath;
 
 namespace SKO.Torch.Plugins.Tweaks.Modules

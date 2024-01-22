@@ -1,5 +1,5 @@
-﻿using Sandbox.Game;
-using System.Text;
+﻿using System.Text;
+using Sandbox.Game;
 
 namespace SKO.Torch.Shared.Utils
 {

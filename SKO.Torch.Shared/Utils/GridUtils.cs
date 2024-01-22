@@ -1,13 +1,13 @@
-﻿using NLog;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Entities.Character;
-using Sandbox.Game.Entities.Cube;
-using Sandbox.ModAPI;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NLog;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Character;
+using Sandbox.Game.Entities.Cube;
+using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Groups;
@@ -56,7 +56,7 @@ namespace SKO.Torch.Shared.Utils
                 if (list != null)
                     if (list.Count > 0)
                     {
-                        var self = list.Where(c => c.EntityId == grid.EntityId).FirstOrDefault();
+                        var self = list.FirstOrDefault(c => c.EntityId == grid.EntityId);
                         if (self != null) list.Remove(self);
                     }
 
@@ -149,15 +149,15 @@ namespace SKO.Torch.Shared.Utils
                     return null;
 
                 foreach (var group in groups)
-                    foreach (var node in group.Nodes)
-                    {
-                        var grid = node.NodeData;
+                foreach (var node in group.Nodes)
+                {
+                    var grid = node.NodeData;
 
-                        if (grid.Physics == null)
-                            continue;
+                    if (grid.Physics == null)
+                        continue;
 
-                        grids.Add(grid);
-                    }
+                    grids.Add(grid);
+                }
             }
             else
             {
@@ -172,15 +172,15 @@ namespace SKO.Torch.Shared.Utils
                     return null;
 
                 foreach (var group in groups)
-                    foreach (var node in group.Nodes)
-                    {
-                        var grid = node.NodeData;
+                foreach (var node in group.Nodes)
+                {
+                    var grid = node.NodeData;
 
-                        if (grid.Physics == null)
-                            continue;
+                    if (grid.Physics == null)
+                        continue;
 
-                        grids.Add(grid);
-                    }
+                    grids.Add(grid);
+                }
             }
 
             return grids;
@@ -228,40 +228,40 @@ namespace SKO.Torch.Shared.Utils
             var ray = new RayD(startPosition, worldMatrix.Forward);
 
             foreach (var group in MyCubeGridGroups.Static.Physical.Groups)
-                foreach (var groupNodes in group.Nodes)
+            foreach (var groupNodes in group.Nodes)
+            {
+                IMyCubeGrid cubeGrid = groupNodes.NodeData;
+
+                if (cubeGrid != null)
                 {
-                    IMyCubeGrid cubeGrid = groupNodes.NodeData;
+                    if (cubeGrid.Physics == null)
+                        continue;
 
-                    if (cubeGrid != null)
+                    // check if the ray comes anywhere near the Grid before continuing.
+                    if (ray.Intersects(cubeGrid.WorldAABB).HasValue)
                     {
-                        if (cubeGrid.Physics == null)
-                            continue;
+                        var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
 
-                        // check if the ray comes anywhere near the Grid before continuing.
-                        if (ray.Intersects(cubeGrid.WorldAABB).HasValue)
+                        if (hit.HasValue)
                         {
-                            var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
+                            var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
 
-                            if (hit.HasValue)
+                            if (list.TryGetValue(group, out var oldDistance))
                             {
-                                var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
-
-                                if (list.TryGetValue(group, out var oldDistance))
+                                if (distance < oldDistance)
                                 {
-                                    if (distance < oldDistance)
-                                    {
-                                        list.Remove(group);
-                                        list.Add(group, distance);
-                                    }
-                                }
-                                else
-                                {
+                                    list.Remove(group);
                                     list.Add(group, distance);
                                 }
+                            }
+                            else
+                            {
+                                list.Add(group, distance);
                             }
                         }
                     }
                 }
+            }
 
             var bag = new ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group>();
 
@@ -318,40 +318,40 @@ namespace SKO.Torch.Shared.Utils
             var ray = new RayD(startPosition, worldMatrix.Forward);
 
             foreach (var group in MyCubeGridGroups.Static.Mechanical.Groups)
-                foreach (var groupNodes in group.Nodes)
+            foreach (var groupNodes in group.Nodes)
+            {
+                IMyCubeGrid cubeGrid = groupNodes.NodeData;
+
+                if (cubeGrid != null)
                 {
-                    IMyCubeGrid cubeGrid = groupNodes.NodeData;
+                    if (cubeGrid.Physics == null)
+                        continue;
 
-                    if (cubeGrid != null)
+                    // check if the ray comes anywhere near the Grid before continuing.
+                    if (ray.Intersects(cubeGrid.WorldAABB).HasValue)
                     {
-                        if (cubeGrid.Physics == null)
-                            continue;
+                        var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
 
-                        // check if the ray comes anywhere near the Grid before continuing.
-                        if (ray.Intersects(cubeGrid.WorldAABB).HasValue)
+                        if (hit.HasValue)
                         {
-                            var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
+                            var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
 
-                            if (hit.HasValue)
+                            if (list.TryGetValue(group, out var oldDistance))
                             {
-                                var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
-
-                                if (list.TryGetValue(group, out var oldDistance))
+                                if (distance < oldDistance)
                                 {
-                                    if (distance < oldDistance)
-                                    {
-                                        list.Remove(group);
-                                        list.Add(group, distance);
-                                    }
-                                }
-                                else
-                                {
+                                    list.Remove(group);
                                     list.Add(group, distance);
                                 }
+                            }
+                            else
+                            {
+                                list.Add(group, distance);
                             }
                         }
                     }
                 }
+            }
 
             var bag = new ConcurrentBag<MyGroups<MyCubeGrid, MyGridMechanicalGroupData>.Group>();
 
@@ -381,44 +381,44 @@ namespace SKO.Torch.Shared.Utils
             var ray = new RayD(startPosition, worldMatrix.Forward);
 
             foreach (var group in MyCubeGridGroups.Static.Physical.Groups)
-                foreach (var groupNodes in group.Nodes)
+            foreach (var groupNodes in group.Nodes)
+            {
+                var cubeGrid = groupNodes.NodeData;
+
+                if (cubeGrid != null)
                 {
-                    var cubeGrid = groupNodes.NodeData;
+                    if (cubeGrid.Physics == null)
+                        continue;
 
-                    if (cubeGrid != null)
+                    /* We are not the server and playerId is not owner */
+                    if (playerId != 0 && !OwnershipCorrect(cubeGrid, playerId, factionFixEnabled))
+                        continue;
+
+                    // check if the ray comes anywhere near the Grid before continuing.
+                    if (ray.Intersects(cubeGrid.PositionComp.WorldAABB).HasValue)
                     {
-                        if (cubeGrid.Physics == null)
-                            continue;
+                        var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
 
-                        /* We are not the server and playerId is not owner */
-                        if (playerId != 0 && !OwnershipCorrect(cubeGrid, playerId, factionFixEnabled))
-                            continue;
-
-                        // check if the ray comes anywhere near the Grid before continuing.
-                        if (ray.Intersects(cubeGrid.PositionComp.WorldAABB).HasValue)
+                        if (hit.HasValue)
                         {
-                            var hit = cubeGrid.RayCastBlocks(startPosition, endPosition);
+                            var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
 
-                            if (hit.HasValue)
+                            if (list.TryGetValue(group, out var oldDistance))
                             {
-                                var distance = (startPosition - cubeGrid.GridIntegerToWorld(hit.Value)).Length();
-
-                                if (list.TryGetValue(group, out var oldDistance))
+                                if (distance < oldDistance)
                                 {
-                                    if (distance < oldDistance)
-                                    {
-                                        list.Remove(group);
-                                        list.Add(group, distance);
-                                    }
-                                }
-                                else
-                                {
+                                    list.Remove(group);
                                     list.Add(group, distance);
                                 }
+                            }
+                            else
+                            {
+                                list.Add(group, distance);
                             }
                         }
                     }
                 }
+            }
 
             var bag = new ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group>();
 

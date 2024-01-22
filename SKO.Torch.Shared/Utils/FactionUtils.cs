@@ -1,6 +1,6 @@
-﻿using Sandbox.Game;
+﻿using System.Collections.Generic;
+using Sandbox.Game;
 using Sandbox.Game.World;
-using System.Collections.Generic;
 using VRage.Game.ModAPI;
 
 namespace SKO.Torch.Shared.Utils
