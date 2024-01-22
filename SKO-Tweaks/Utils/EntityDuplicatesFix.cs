@@ -1,6 +1,6 @@
-﻿using Sandbox.Game.Entities;
-using System;
+﻿using System;
 using System.Linq;
+using Sandbox.Game.Entities;
 
 namespace SKO.Torch.Plugins.Tweaks.Utils
 {

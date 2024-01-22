@@ -1,6 +1,6 @@
-﻿using SKO.Bounty.Utils;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using SKO.Bounty.Utils;
 
 namespace SKO.Bounty.Models
 {

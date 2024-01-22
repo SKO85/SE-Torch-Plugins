@@ -1,5 +1,5 @@
-﻿using SKO.Torch.Plugins.Tweaks.Config.Mod;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
+using SKO.Torch.Plugins.Tweaks.Config.Mod;
 
 namespace SKO.Torch.Plugins.Tweaks.Config
 {

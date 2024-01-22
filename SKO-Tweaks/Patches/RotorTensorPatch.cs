@@ -1,7 +1,7 @@
-﻿using Sandbox.Game.Entities.Cube;
+﻿using System.Reflection;
+using Sandbox.Game.Entities.Cube;
 using SKO.Torch.Plugins.Tweaks.Config;
 using SKO.Torch.Plugins.Tweaks.Modules;
-using System.Reflection;
 using Torch.Managers.PatchManager;
 
 namespace SKO.Torch.Plugins.Tweaks.Patches

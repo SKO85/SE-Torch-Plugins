@@ -1,9 +1,9 @@
-﻿using Sandbox.ModAPI;
+﻿using System;
+using System.Text;
+using Sandbox.ModAPI;
 using SKO.Bounty.Data;
 using SKO.Bounty.Modules;
 using SKO.Torch.Shared.Utils;
-using System;
-using System.Text;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using Torch.Mod;

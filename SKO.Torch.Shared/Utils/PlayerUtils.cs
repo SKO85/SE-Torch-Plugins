@@ -1,10 +1,10 @@
-﻿using Sandbox.Game.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
@@ -98,7 +98,7 @@ namespace SKO.Torch.Shared.Utils
 
         public static MyIdentity GetPlayerIdentity(long identityId)
         {
-            return GetAllPlayerIdentities().Where(c => c.IdentityId == identityId).FirstOrDefault();
+            return GetAllPlayerIdentities().FirstOrDefault(c => c.IdentityId == identityId);
         }
 
         public static IMyPlayer GetPlayer(long identityId)
@@ -136,8 +136,9 @@ namespace SKO.Torch.Shared.Utils
 
         public static long GetIdentityIdByName(string name)
         {
-            var identity = MySession.Static.Players.GetAllIdentities()
-                .Where(c => c.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+            var identity = MySession.Static.Players
+                .GetAllIdentities().FirstOrDefault(c =>
+                    c.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             if (identity != null) return identity.IdentityId;
             return 0;
         }

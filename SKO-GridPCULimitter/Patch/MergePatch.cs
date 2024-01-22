@@ -1,6 +1,6 @@
-﻿using SKO.Torch.Shared.Utils;
+﻿using System.Reflection;
+using SKO.Torch.Shared.Utils;
 using SpaceEngineers.Game.Entities.Blocks;
-using System.Reflection;
 using Torch.Managers.PatchManager;
 
 namespace SKO.GridPCULimiter.Patch

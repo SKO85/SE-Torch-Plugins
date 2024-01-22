@@ -1,9 +1,9 @@
-﻿using Sandbox.Definitions;
+﻿using System.Linq;
+using Sandbox.Definitions;
 using Sandbox.Game;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
-using System.Linq;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -23,7 +23,7 @@ namespace SKO.Torch.Shared.Utils
         public static MyDefinitionId GetDefinitionId(string subTypeId)
         {
             var definitions = MyDefinitionManager.Static.GetAllDefinitions();
-            var itemDefinition = definitions.Where(c => c.Id != null && c.Id.SubtypeName == subTypeId).FirstOrDefault();
+            var itemDefinition = definitions.FirstOrDefault(c => c.Id != null && c.Id.SubtypeName == subTypeId);
             return itemDefinition.Id;
         }
 
