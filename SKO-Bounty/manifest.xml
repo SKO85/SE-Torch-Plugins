@@ -1,0 +1,8 @@
+﻿<?xml version="1.0"?>
+
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SKO-Bounty</Name>
+	<Guid>e1bdd30c-d4d4-4813-8779-58f8707958e0</Guid>
+	<Repository>None</Repository>
+	<Version>v1.3.1</Version>
+</PluginManifest>
