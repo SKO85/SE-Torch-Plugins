@@ -1,0 +1,8 @@
+﻿<?xml version="1.0"?>
+
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SKO-PingWatch</Name>
+	<Guid>8ab41759-89ca-4430-b86f-a93769b499f9</Guid>
+	<Repository>None</Repository>
+	<Version>v1.1.1</Version>
+</PluginManifest>

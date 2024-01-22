@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Libraries", "_Libraries", "{314B29F2-A3E1-4261-A325-9E32268A4A75}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SKO.Torch.Shared", "SKO.Torch.Shared\SKO.Torch.Shared.shproj", "{0A4FE323-3FC5-4F0F-BFCA-F11022760EB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKO-Bounty", "SKO-Bounty\SKO-Bounty.csproj", "{B280D8B0-21AB-4B1E-AA76-F077E0A72A27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKO-GridPCULimiter", "SKO-GridPCULimitter\SKO-GridPCULimiter.csproj", "{4BA7D1E3-9D56-4818-A47F-0E7B23E70A5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKO-PingWatch", "SKO-PingWatch\SKO-PingWatch.csproj", "{F69DBD23-DB94-43A0-89EA-CC30FEA9A5DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKO-Tweaks", "SKO-Tweaks\SKO-Tweaks.csproj", "{14B2199C-F1EF-481E-9F71-353AFFC7C8C4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B280D8B0-21AB-4B1E-AA76-F077E0A72A27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B280D8B0-21AB-4B1E-AA76-F077E0A72A27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B280D8B0-21AB-4B1E-AA76-F077E0A72A27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B280D8B0-21AB-4B1E-AA76-F077E0A72A27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BA7D1E3-9D56-4818-A47F-0E7B23E70A5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BA7D1E3-9D56-4818-A47F-0E7B23E70A5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BA7D1E3-9D56-4818-A47F-0E7B23E70A5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BA7D1E3-9D56-4818-A47F-0E7B23E70A5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F69DBD23-DB94-43A0-89EA-CC30FEA9A5DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F69DBD23-DB94-43A0-89EA-CC30FEA9A5DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F69DBD23-DB94-43A0-89EA-CC30FEA9A5DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F69DBD23-DB94-43A0-89EA-CC30FEA9A5DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14B2199C-F1EF-481E-9F71-353AFFC7C8C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14B2199C-F1EF-481E-9F71-353AFFC7C8C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14B2199C-F1EF-481E-9F71-353AFFC7C8C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14B2199C-F1EF-481E-9F71-353AFFC7C8C4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0A4FE323-3FC5-4F0F-BFCA-F11022760EB3} = {314B29F2-A3E1-4261-A325-9E32268A4A75}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4D7EFA88-34A3-4EA5-BAA7-F60A64046BAA}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SKO.Torch.Shared\SKO.Torch.Shared.projitems*{0a4fe323-3fc5-4f0f-bfca-f11022760eb3}*SharedItemsImports = 13
+		SKO.Torch.Shared\SKO.Torch.Shared.projitems*{14b2199c-f1ef-481e-9f71-353affc7c8c4}*SharedItemsImports = 4
+		SKO.Torch.Shared\SKO.Torch.Shared.projitems*{4ba7d1e3-9d56-4818-a47f-0e7b23e70a5f}*SharedItemsImports = 4
+		SKO.Torch.Shared\SKO.Torch.Shared.projitems*{b280d8b0-21ab-4b1e-aa76-f077e0a72a27}*SharedItemsImports = 4
+		SKO.Torch.Shared\SKO.Torch.Shared.projitems*{f69dbd23-db94-43a0-89ea-cc30fea9a5db}*SharedItemsImports = 4
+	EndGlobalSection
+EndGlobal

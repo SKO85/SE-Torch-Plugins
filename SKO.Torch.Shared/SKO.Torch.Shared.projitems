@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0a4fe323-3fc5-4f0f-bfca-f11022760eb3</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SKO.Torch.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyCubeGridExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Cooldown\Cooldown.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Cooldown\CooldownManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Cooldown\ICooldownKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Entity\EntityCacheManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Entity\EntityExpirationCacheManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Grid\GridBlocksCacheManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBaseModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginConfigBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginExtensionModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginMainModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Text\TextTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Text\TextTableColumn.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Text\TextTableRow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\BlockUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ConfigUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CreditsUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\FactionUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\GridUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\IdentityUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\NetworkUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\NotificationUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\OwnershipUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\PlayerUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ProjectorUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ReflectionUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\SoundUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" />
+  </ItemGroup>
+</Project>
