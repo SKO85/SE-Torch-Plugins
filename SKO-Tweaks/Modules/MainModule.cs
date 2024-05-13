@@ -11,11 +11,13 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
         public static EntityCacheManager<MyEntity> EntityManager;
         public static SafeZoneModule SafeZoneModule;
         public static ShareInertiaTensorModule ShareInertiaTensorModule;
+        public static DisableConnectorThrowOutModule DisableConnectorThrowOutModule;
 
         public MainModule(SKOTweaksPlugin pluginInstance, string configFile = null) : base(pluginInstance, configFile)
         {
             SafeZoneModule = new SafeZoneModule(pluginInstance);
             ShareInertiaTensorModule = new ShareInertiaTensorModule(pluginInstance);
+            DisableConnectorThrowOutModule = new DisableConnectorThrowOutModule(pluginInstance);
         }
 
         protected override void InitializeModule()
@@ -30,17 +32,20 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
             // Init sub-modules.
             SafeZoneModule.Init();
             ShareInertiaTensorModule.Init();
+            DisableConnectorThrowOutModule.Init();
         }
 
         private void OnConfigLoaded(PluginConfig config)
         {
             SafeZoneModule?.SetInterval(config.SafeZones.CheckIntervalSeconds);
+            DisableConnectorThrowOutModule?.SetInterval(config.DisableConnectorThrowOut.DisableTimerMinutes);
         }
 
         public override void Start()
         {
             SafeZoneModule?.Start();
             ShareInertiaTensorModule?.Start();
+            DisableConnectorThrowOutModule?.Start();
         }
 
         public override void Stop()
@@ -48,6 +53,7 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
             ConfigLoaded -= OnConfigLoaded;
             SafeZoneModule?.Stop();
             ShareInertiaTensorModule?.Stop();
+            DisableConnectorThrowOutModule?.Stop();
             base.Stop();
         }
     }
