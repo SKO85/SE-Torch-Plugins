@@ -114,7 +114,7 @@ namespace SKO.GridPCULimiter
                                 if (Config.DamageConnectors)
                                 {
                                     var slimBlock = connector?.SlimBlock;
-                                    slimBlock?.DoDamage(1500, MyDamageType.Rocket, true);
+                                    slimBlock?.DoDamage(1500, MyDamageType.Rocket, true, hitInfo: null);
                                 }
 
                                 // Send message to players.
