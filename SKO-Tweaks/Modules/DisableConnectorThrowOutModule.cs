@@ -79,7 +79,7 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
                         if (MainModule.Config.DisableConnectorThrowOut.Log)
                         {
-                            SKOTweaksPlugin.Log.Warn($"Disabled ThrowOut for connector '{connector.CustomName}' of grid '{connector.CubeGrid.DisplayName}'.");
+                            SKOTweaksPlugin.Log.Warn($"Disabled ThrowOut for connector '{connector.CustomName}' of grid '{connector.CubeGrid.DisplayName}'. Grid EntityId: '{connector.CubeGrid.EntityId}'.");
                         }
                     }
                     catch

@@ -99,14 +99,16 @@
   <PropertyGroup>
     <PostBuildEvent>set BINDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\bin\$(TargetName)\
 set PLUGINSDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\_Torch\Plugins\
-
+del /s %25BINDIR%25
+sleep 3
 mkdir %25BINDIR%25
-xcopy $(TargetDir)$(TargetName).dll %25BINDIR%25
-xcopy $(TargetDir)$(TargetName).pdb %25BINDIR%25
-xcopy manifest.xml %25BINDIR%25
+
+xcopy $(TargetDir)$(TargetName).dll %25BINDIR%25 /K /D /H /Y
+xcopy $(TargetDir)$(TargetName).pdb %25BINDIR%25 /K /D /H /Y
+xcopy $(TargetDir)manifest.xml %25BINDIR%25 /K /D /H /Y
 
 7z a %25BINDIR%25$(TargetName).zip %25BINDIR%25*
-
-xcopy %25BINDIR%25$(TargetName).zip %25PLUGINSDIR%25 /K /D /H /Y</PostBuildEvent>
+xcopy %25BINDIR%25$(TargetName).zip %25PLUGINSDIR%25 /K /D /H /Y
+rimraf %25BINDIR%25</PostBuildEvent>
   </PropertyGroup>
 </Project>
