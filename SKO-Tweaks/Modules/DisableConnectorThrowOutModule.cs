@@ -20,9 +20,9 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
         protected override void InitializeModule()
         {
             // Timers.
-            if (MainModule.Config.DisableConnectorThrowOut.DisableTimerMinutes > 0)
+            if (MainModule.Config.DisableConnectorThrowOut.DisableTimerSeconds > 0)
             {
-                _checkTimer = new Timer(TimeSpan.FromMinutes(MainModule.Config.DisableConnectorThrowOut.DisableTimerMinutes).TotalMilliseconds);
+                _checkTimer = new Timer(TimeSpan.FromSeconds(MainModule.Config.DisableConnectorThrowOut.DisableTimerSeconds).TotalMilliseconds);
                 _checkTimer.Elapsed += OnCheckTimerElapsed;
             }
         }
@@ -42,14 +42,6 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
         {
             if (MainModule.Config.PluginEnabled && MainModule.EntityManager != null)
                 Fix(MainModule.EntityManager.GetOf<MyCubeGrid>().ToHashSet());
-        }
-
-        public void SetInterval(int intervalMinutes)
-        {
-            if (_checkTimer != null && intervalMinutes > 0)
-            {
-                _checkTimer.Interval = TimeSpan.FromMinutes(intervalMinutes).TotalMilliseconds;
-            }
         }
 
         private void Fix(HashSet<MyCubeGrid> grids)

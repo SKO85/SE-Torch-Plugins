@@ -38,7 +38,6 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
         private void OnConfigLoaded(PluginConfig config)
         {
             SafeZoneModule?.SetInterval(config.SafeZones.CheckIntervalSeconds);
-            DisableConnectorThrowOutModule?.SetInterval(config.DisableConnectorThrowOut.DisableTimerMinutes);
         }
 
         public override void Start()
