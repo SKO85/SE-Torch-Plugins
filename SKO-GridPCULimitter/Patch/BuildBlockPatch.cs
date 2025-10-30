@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Sandbox.Definitions;
+﻿using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using SKO.Torch.Shared.Utils;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Torch.Managers.PatchManager;
 using VRage.Network;
 
@@ -23,7 +23,7 @@ namespace SKO.GridPCULimiter.Patch
 
         private static bool BuildBlocksRequest(MyCubeGrid __instance, HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
-            if (!SKOGridPCULimiterPlugin.Config.Enabled) return true;
+            if (!SKOGridPCULimiterPlugin.Instance.Config.Enabled) return true;
 
             if (__instance == null)
             {
@@ -40,7 +40,7 @@ namespace SKO.GridPCULimiter.Patch
                 return true;
             }
 
-            if (SKOGridPCULimiterPlugin.Config.IgnoreNPCGrids)
+            if (SKOGridPCULimiterPlugin.Instance.Config.IgnoreNPCGrids)
             {
                 var ownerId = PlayerUtils.GetOwner(__instance);
                 if (PlayerUtils.IsNpc(ownerId)) return true;
@@ -52,8 +52,10 @@ namespace SKO.GridPCULimiter.Patch
             if (player != null && PlayerUtils.IsAdmin(player) &&
                 PlayerUtils.IsPCULimitIgnored(player.SteamUserId)) return true;
 
-            if (GridUtils.GetPCU(__instance, true, SKOGridPCULimiterPlugin.Config.IncludeConnectedGridsPCU) >=
-                SKOGridPCULimiterPlugin.Config.MaxGridPCU)
+            if (player != null && SKOGridPCULimiterPlugin.IsExemptFromPCULimit(player.SteamUserId)) return true;
+
+            if (GridUtils.GetPCU(__instance, true, SKOGridPCULimiterPlugin.Instance.Config.IncludeConnectedGridsPCU) >=
+                SKOGridPCULimiterPlugin.Instance.Config.MaxGridPCU)
             {
                 if (playerId > 0)
                 {

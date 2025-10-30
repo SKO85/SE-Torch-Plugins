@@ -1,5 +1,5 @@
-﻿using System.Text;
-using SKO.Torch.Shared.Utils;
+﻿using SKO.Torch.Shared.Utils;
+using System.Text;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -13,8 +13,10 @@ namespace SKO.GridPCULimiter.Commands
         [Permission(MyPromoteLevel.Admin)]
         public void Reload()
         {
-            SKOGridPCULimiterPlugin.Config =
-                ConfigUtils.Load<GridPCULimiterConfig>(SKOGridPCULimiterPlugin.Instance, "SKOGridPCULimiter.cfg");
+            var config = ConfigUtils.Load<GridPCULimiterConfig>(SKOGridPCULimiterPlugin.Instance, "SKOGridPCULimiter.cfg");
+
+            // Use reflection to set the private property
+            typeof(SKOGridPCULimiterPlugin).GetProperty("Config").SetValue(SKOGridPCULimiterPlugin.Instance, config);
             Context.Respond("Configuration reloaded.");
         }
 
@@ -25,14 +27,14 @@ namespace SKO.GridPCULimiter.Commands
             var sb = new StringBuilder();
 
             sb.AppendLine("SKO-GridPCULimiter Config:");
-            sb.AppendLine($"> Enabled: {SKOGridPCULimiterPlugin.Config.Enabled}");
-            sb.AppendLine($"> MaxGridPCU: {SKOGridPCULimiterPlugin.Config.MaxGridPCU}");
-            sb.AppendLine($"> AllowProjection: {SKOGridPCULimiterPlugin.Config.AllowProjection}");
-            sb.AppendLine($"> AllowMerge: {SKOGridPCULimiterPlugin.Config.AllowMerge}");
-            sb.AppendLine($"> IncludeConnectedGridsPCU: {SKOGridPCULimiterPlugin.Config.IncludeConnectedGridsPCU}");
-            sb.AppendLine($"> MaxNumberOfConnectedGrids: {SKOGridPCULimiterPlugin.Config.MaxNumberOfConnectedGrids}");
-            sb.AppendLine($"> DamageConnectors: {SKOGridPCULimiterPlugin.Config.DamageConnectors}");
-            sb.AppendLine($"> DisableWeldersWithinMeters: {SKOGridPCULimiterPlugin.Config.DisableWeldersWithinMeters}");
+            sb.AppendLine($"> Enabled: {SKOGridPCULimiterPlugin.Instance.Config.Enabled}");
+            sb.AppendLine($"> MaxGridPCU: {SKOGridPCULimiterPlugin.Instance.Config.MaxGridPCU}");
+            sb.AppendLine($"> AllowProjection: {SKOGridPCULimiterPlugin.Instance.Config.AllowProjection}");
+            sb.AppendLine($"> AllowMerge: {SKOGridPCULimiterPlugin.Instance.Config.AllowMerge}");
+            sb.AppendLine($"> IncludeConnectedGridsPCU: {SKOGridPCULimiterPlugin.Instance.Config.IncludeConnectedGridsPCU}");
+            sb.AppendLine($"> MaxNumberOfConnectedGrids: {SKOGridPCULimiterPlugin.Instance.Config.MaxNumberOfConnectedGrids}");
+            sb.AppendLine($"> DamageConnectors: {SKOGridPCULimiterPlugin.Instance.Config.DamageConnectors}");
+            sb.AppendLine($"> DisableWeldersWithinMeters: {SKOGridPCULimiterPlugin.Instance.Config.DisableWeldersWithinMeters}");
 
             Context.Respond(sb.ToString());
         }

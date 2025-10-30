@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Sandbox.Game.Entities;
+﻿using Sandbox.Game.Entities;
+using System.Collections.Generic;
 
 namespace SKO.Torch.Shared.Utils
 {

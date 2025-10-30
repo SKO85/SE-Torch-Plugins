@@ -1,5 +1,5 @@
-﻿using System;
-using SKO.Torch.Shared.Utils;
+﻿using SKO.Torch.Shared.Utils;
+using System;
 using Torch;
 
 namespace SKO.Torch.Shared.Plugin
