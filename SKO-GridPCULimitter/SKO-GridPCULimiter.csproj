@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,10 +73,17 @@
     <Reference Include="VRage.Math">
       <HintPath>..\_Torch\DedicatedServer64\VRage.Math.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\AdminCommands.cs" />
     <Compile Include="GridPCULimiterConfig.cs" />
+    <Compile Include="GridPCULimiterControl.xaml.cs">
+      <DependentUpon>GridPCULimiterControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Patch\BuildBlockPatch.cs" />
     <Compile Include="Patch\MergePatch.cs" />
     <Compile Include="Patch\ProjectionPatch.cs" />
@@ -94,21 +102,27 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Include="GridPCULimiterControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
   <Import Project="..\SKO.Torch.Shared\SKO.Torch.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>set BINDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\bin\$(TargetName)\
-set PLUGINSDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\_Torch\Plugins\
-del /s %25BINDIR%25
-sleep 3
-mkdir %25BINDIR%25
+    <PostBuildEvent>set BINDIR=C:\SE-ProjectsV2\SE-Torch-Plugins\SKO-GridPCULimitter\bin\$(TargetName)\
+set PLUGINSDIR=C:\SE-ProjectsV2\SE-Torch-Plugins\SKO-GridPCULimitter\Build\
+if exist "%25BINDIR%25" rmdir /s /q "%25BINDIR%25"
+if not exist "%25PLUGINSDIR%25" mkdir "%25PLUGINSDIR%25"
+mkdir "%25BINDIR%25"
 
-xcopy $(TargetDir)$(TargetName).dll %25BINDIR%25 /K /D /H /Y
-xcopy $(TargetDir)$(TargetName).pdb %25BINDIR%25 /K /D /H /Y
-xcopy $(TargetDir)manifest.xml %25BINDIR%25 /K /D /H /Y
+xcopy $(TargetDir)$(TargetName).dll "%25BINDIR%25" /K /D /H /Y
+xcopy $(TargetDir)$(TargetName).pdb "%25BINDIR%25" /K /D /H /Y
+xcopy $(TargetDir)manifest.xml "%25BINDIR%25" /K /D /H /Y
 
-7z a %25BINDIR%25$(TargetName).zip %25BINDIR%25*
-xcopy %25BINDIR%25$(TargetName).zip %25PLUGINSDIR%25 /K /D /H /Y
-rimraf %25BINDIR%25</PostBuildEvent>
+powershell -Command "Compress-Archive -Path '%25BINDIR%25*' -DestinationPath '%25BINDIR%25$(TargetName).zip' -Force"
+xcopy "%25BINDIR%25$(TargetName).zip" "%25PLUGINSDIR%25" /K /D /H /Y
+rmdir /s /q "%25BINDIR%25"</PostBuildEvent>
   </PropertyGroup>
 </Project>
