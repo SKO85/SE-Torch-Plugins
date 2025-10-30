@@ -2,7 +2,7 @@
 
 <PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>SKO-GridPCULimiter</Name>
-	<Guid>589f0698-d9c2-4d7c-b4fb-64df67657fcd</Guid>
+	<Guid>7720b1c2-fc5a-4fac-bc07-b2835edfdb81</Guid>
 	<Repository>None</Repository>
 	<Version>v1.5.3</Version>
 </PluginManifest>

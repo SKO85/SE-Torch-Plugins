@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Windows.Controls;
 using NLog;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
@@ -10,6 +11,7 @@ using SKO.Torch.Shared.Utils;
 using Torch;
 using Torch.API;
 using Torch.API.Managers;
+using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Server;
 using Torch.Session;
@@ -22,13 +24,26 @@ using IMyShipWelder = Sandbox.ModAPI.IMyShipWelder;
 
 namespace SKO.GridPCULimiter
 {
-    public class SKOGridPCULimiterPlugin : TorchPluginBase
+    public class SKOGridPCULimiterPlugin : TorchPluginBase, IWpfPlugin
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static GridPCULimiterConfig Config;
+        public GridPCULimiterConfig Config { get; private set; }
         private static TorchSessionManager SessionManager;
         public TorchServer TorchServer;
         public static SKOGridPCULimiterPlugin Instance { get; private set; }
+
+        private GridPCULimiterControl _control;
+        public UserControl GetControl() => _control ?? (_control = new GridPCULimiterControl(this));
+
+        public void Save()
+        {
+            ConfigUtils.Save(this, Config, "SKOGridPCULimiter.cfg");
+        }
+
+        public static bool IsExemptFromPCULimit(ulong steamId)
+        {
+            return Instance?.Config?.ExemptSteamIds != null && Instance.Config.ExemptSteamIds.Contains(steamId);
+        }
 
         public override void Init(ITorchBase torch)
         {
@@ -79,6 +94,10 @@ namespace SKO.GridPCULimiter
                         var ownerId = PlayerUtils.GetOwner(grid as MyCubeGrid);
                         if (PlayerUtils.IsNpc(ownerId)) return;
                     }
+
+                    var gridOwnerId = PlayerUtils.GetOwner(grid as MyCubeGrid);
+                    var gridOwnerPlayer = PlayerUtils.GetPlayer(gridOwnerId);
+                    if (gridOwnerPlayer != null && IsExemptFromPCULimit(gridOwnerPlayer.SteamUserId)) return;
 
                     if (GridUtils.GetPCU(grid, true, Config.IncludeConnectedGridsPCU) > Config.MaxGridPCU)
                     {
@@ -150,6 +169,8 @@ namespace SKO.GridPCULimiter
                         var player = PlayerUtils.GetPlayer(block.BuiltBy);
                         if (player != null && PlayerUtils.IsAdmin(player) &&
                             PlayerUtils.IsPCULimitIgnored(player.SteamUserId)) return;
+
+                        if (player != null && IsExemptFromPCULimit(player.SteamUserId)) return;
 
                         if (GridUtils.GetPCU(cube, true, Config.IncludeConnectedGridsPCU) >= Config.MaxGridPCU)
                         {

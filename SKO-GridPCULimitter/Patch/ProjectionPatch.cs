@@ -30,7 +30,7 @@ namespace SKO.GridPCULimiter.Patch
         private static bool OnBluePrintSuccess(MyProjectorBase __instance,
             ref List<MyObjectBuilder_CubeGrid> projectedGrids)
         {
-            if (!SKOGridPCULimiterPlugin.Config.Enabled || SKOGridPCULimiterPlugin.Config.AllowProjection) return true;
+            if (!SKOGridPCULimiterPlugin.Instance.Config.Enabled || SKOGridPCULimiterPlugin.Instance.Config.AllowProjection) return true;
 
             var _instance = __instance;
             if (_instance == null)
@@ -46,7 +46,7 @@ namespace SKO.GridPCULimiter.Patch
                 return false;
             }
 
-            if (SKOGridPCULimiterPlugin.Config.IgnoreNPCGrids)
+            if (SKOGridPCULimiterPlugin.Instance.Config.IgnoreNPCGrids)
             {
                 var ownerId = PlayerUtils.GetOwner(__instance.CubeGrid);
                 if (PlayerUtils.IsNpc(ownerId)) return true;
@@ -57,8 +57,10 @@ namespace SKO.GridPCULimiter.Patch
             var cubeBlocks = grid.CubeBlocks;
             if (player == null || cubeBlocks.Count == 0) return false;
 
+            if (SKOGridPCULimiterPlugin.IsExemptFromPCULimit(value)) return true;
+
             var projectionPCU = GridUtils.GetPCU(_instance.CubeGrid);
-            if (projectionPCU >= SKOGridPCULimiterPlugin.Config.MaxGridPCU)
+            if (projectionPCU >= SKOGridPCULimiterPlugin.Instance.Config.MaxGridPCU)
             {
                 if (player?.Identity?.IdentityId > 0)
                 {
@@ -72,8 +74,8 @@ namespace SKO.GridPCULimiter.Patch
             }
 
             var baseGridPCU = GridUtils.GetPCU(__instance.CubeGrid, true,
-                SKOGridPCULimiterPlugin.Config.IncludeConnectedGridsPCU);
-            if (baseGridPCU >= SKOGridPCULimiterPlugin.Config.MaxGridPCU)
+                SKOGridPCULimiterPlugin.Instance.Config.IncludeConnectedGridsPCU);
+            if (baseGridPCU >= SKOGridPCULimiterPlugin.Instance.Config.MaxGridPCU)
             {
                 if (player?.Identity?.IdentityId > 0)
                 {
@@ -86,7 +88,7 @@ namespace SKO.GridPCULimiter.Patch
                 return false;
             }
 
-            if (baseGridPCU + projectionPCU >= SKOGridPCULimiterPlugin.Config.MaxGridPCU)
+            if (baseGridPCU + projectionPCU >= SKOGridPCULimiterPlugin.Instance.Config.MaxGridPCU)
             {
                 if (player?.Identity?.IdentityId > 0)
                 {
