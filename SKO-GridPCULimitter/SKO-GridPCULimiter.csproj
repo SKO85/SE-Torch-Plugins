@@ -72,10 +72,17 @@
     <Reference Include="VRage.Math">
       <HintPath>..\_Torch\DedicatedServer64\VRage.Math.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\AdminCommands.cs" />
     <Compile Include="GridPCULimiterConfig.cs" />
+    <Compile Include="GridPCULimiterControl.xaml.cs">
+      <DependentUpon>GridPCULimiterControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Patch\BuildBlockPatch.cs" />
     <Compile Include="Patch\MergePatch.cs" />
     <Compile Include="Patch\ProjectionPatch.cs" />
@@ -93,6 +100,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="GridPCULimiterControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="..\SKO.Torch.Shared\SKO.Torch.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

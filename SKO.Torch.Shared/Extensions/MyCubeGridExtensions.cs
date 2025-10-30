@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Sandbox.Game.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Sandbox.Game.Entities;
 using VRage.Game.ModAPI;
 
 namespace SKO.Torch.Shared.Extensions

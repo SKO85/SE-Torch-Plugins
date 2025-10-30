@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Sandbox.Engine.Multiplayer;
+using Sandbox.Engine.Networking;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Sandbox.Engine.Multiplayer;
-using Sandbox.Engine.Networking;
 using VRage.GameServices;
 using VRage.Network;
 using VRage.Serialization;
