@@ -150,8 +150,9 @@ namespace SKO.Torch.Shared.Utils
 
         public static bool IsPCULimitIgnored(ulong steamId)
         {
-            var adminSettings = MySession.Static.RemoteAdminSettings[steamId];
-            return adminSettings.HasFlag(AdminSettingsEnum.IgnorePcu);
+            if (MySession.Static?.RemoteAdminSettings == null) return false;
+            return MySession.Static.RemoteAdminSettings.TryGetValue(steamId, out var adminSettings)
+                && adminSettings.HasFlag(AdminSettingsEnum.IgnorePcu);
         }
 
         public static List<IMyPlayer> GetPlayersInRadiusOfEntity(IMyEntity entity, int radius)
