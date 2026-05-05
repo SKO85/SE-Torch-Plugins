@@ -4,7 +4,19 @@ Welcome to SKO's Space Engineers Torch Plugins repository! This collection of pl
 
 ## Setup referenced assemblies
 
-Run the `Setup.bat` file to create a link to the Torch installation folder. Modify the contents of the file to match the Torch destination directory.
+Run `Setup.bat` to create a junction `_Torch` pointing at your Torch dedicated-server install. Pass the path as the first argument:
+
+```cmd
+Setup.bat "C:\path\to\Torch"
+```
+
+Or set the `TORCH_PATH` environment variable and run without arguments:
+
+```cmd
+set TORCH_PATH=C:\path\to\Torch
+Setup.bat
+```
+
 This step is crucial for making the required referenced assemblies available in the C# projects used for the plugins.
 
 ## Contributing and Proposing Changes
