@@ -63,7 +63,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog">
-      <HintPath>..\_Torch\DedicatedServer64\NLog.dll</HintPath>
+      <HintPath>..\_Torch\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Sandbox.Common">
       <HintPath>..\_Torch\DedicatedServer64\Sandbox.Common.dll</HintPath>

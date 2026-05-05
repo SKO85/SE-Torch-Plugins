@@ -26,7 +26,7 @@ namespace SKO.Torch.Shared.Utils
         ///     Generic Configuration/Data Load function to retrieve data from the specified file in the specified type.
         ///     Reads JSON. If an existing file is in the legacy XML format, it is migrated to JSON automatically.
         /// </summary>
-        public static T Load<T>(TorchPluginBase plugin, string fileName) where T : new()
+        public static T Load<T>(TorchPluginBase plugin, string fileName) where T : class, new()
         {
             var filePath = Path.Combine(plugin.StoragePath, fileName);
 
@@ -104,7 +104,7 @@ namespace SKO.Torch.Shared.Utils
         /// <summary>
         ///     Saves the specified data instance to a file as JSON.
         /// </summary>
-        public static bool Save<T>(TorchPluginBase plugin, T data, string fileName) where T : new()
+        public static bool Save<T>(TorchPluginBase plugin, T data, string fileName) where T : class, new()
         {
             var filePath = Path.Combine(plugin.StoragePath, fileName);
             try
@@ -122,7 +122,7 @@ namespace SKO.Torch.Shared.Utils
         }
 
         private static T MoveCorruptAside<T>(TorchPluginBase plugin, string filePath, string fileName, Exception ex)
-            where T : new()
+            where T : class, new()
         {
             var backup = filePath + ".broken-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
             try
