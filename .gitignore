@@ -344,3 +344,8 @@ _Torch
 _Torch/
 _Releases/
 _X/
+
+# Local context/ticket tracking
+_context/
+.claude/
+CLAUDE.md

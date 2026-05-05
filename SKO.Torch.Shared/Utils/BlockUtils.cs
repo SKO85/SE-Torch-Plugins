@@ -20,11 +20,11 @@ namespace SKO.Torch.Shared.Utils
             return pcuValue;
         }
 
-        public static MyDefinitionId GetDefinitionId(string subTypeId)
+        public static MyDefinitionId? GetDefinitionId(string subTypeId)
         {
-            var definitions = MyDefinitionManager.Static.GetAllDefinitions();
-            var itemDefinition = definitions.FirstOrDefault(c => c.Id != null && c.Id.SubtypeName == subTypeId);
-            return itemDefinition.Id;
+            var itemDefinition = MyDefinitionManager.Static.GetAllDefinitions()
+                .FirstOrDefault(c => c.Id != null && c.Id.SubtypeName == subTypeId);
+            return itemDefinition?.Id;
         }
 
         public static bool PlayersNarby(IMyCubeBlock block, int radius)

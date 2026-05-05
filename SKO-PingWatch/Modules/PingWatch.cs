@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +24,7 @@ namespace SKO.PingWatch.Modules
         public void Clean()
         {
             IsRunning = false;
+            MyVisualScriptLogicProvider.PlayerDisconnected -= OnPlayerDisconnected;
             Data.Clear();
         }
 
@@ -46,7 +47,18 @@ namespace SKO.PingWatch.Modules
             IsRunning = true;
             Task.Run(() =>
             {
-                while (IsRunning) CheckPing();
+                while (IsRunning)
+                {
+                    try
+                    {
+                        CheckPing();
+                    }
+                    catch (Exception ex)
+                    {
+                        SKOPingWatchPlugin.Log.Error(ex, "CheckPing failed; will retry next interval.");
+                        try { Thread.Sleep(Math.Max(1, Config.CheckIntervalMin) * 60 * 1000); } catch { }
+                    }
+                }
             });
         }
 
@@ -63,11 +75,14 @@ namespace SKO.PingWatch.Modules
                     SKOPingWatchPlugin.Log.Warn(
                         $"[Disconnected] {player.DisplayName} ({playerId}) ({player.SteamUserId})");
 
-                if (Data.ContainsKey(player.SteamUserId))
+                if (Data.TryGetValue(player.SteamUserId, out var data))
                 {
-                    // Clear records.
-                    Data[player.SteamUserId].Pings.Clear();
-                    Data[player.SteamUserId].Warnings.Clear();
+                    // Clear records (preserve Connections so reconnect cap still applies).
+                    lock (data)
+                    {
+                        data.Pings.Clear();
+                        data.Warnings.Clear();
+                    }
                 }
             }
         }
@@ -76,47 +91,81 @@ namespace SKO.PingWatch.Modules
         {
             if (!Config.Enabled)
             {
-                Thread.Sleep(Config.CheckIntervalMin * 60 * 1000);
+                Thread.Sleep(Math.Max(1, Config.CheckIntervalMin) * 60 * 1000);
                 return;
             }
 
             var ping = NetworkUtils.GetPings();
             if (ping.Count > CheckAfterNumPlayers)
+            {
                 foreach (var playerId in ping.Keys)
                 {
-                    if (!Data.ContainsKey(playerId))
-                        Data[playerId] = new PingWatchPlayerData
-                        {
-                            SteamId = playerId
-                        };
-
-                    Data[playerId].Pings.Add(ping[playerId]);
+                    var data = Data.GetOrAdd(playerId, id => new PingWatchPlayerData { SteamId = id });
+                    lock (data) { data.Pings.Add(ping[playerId]); }
                 }
+            }
             else
-                Data.Clear();
+            {
+                // Don't wipe Data — we'd lose Connections counters that enforce MaxReconnectionsAllowed.
+                // Just clear the per-player ping/warning samples so they age out cleanly.
+                foreach (var entry in Data.Values)
+                {
+                    lock (entry)
+                    {
+                        entry.Pings.Clear();
+                        entry.Warnings.Clear();
+                    }
+                }
+            }
 
             if (Data.Count > CheckAfterNumPlayers)
                 foreach (var steamId in Data.Keys)
                 {
-                    var probes = Data[steamId].Pings;
-                    if (probes.Count >= Config.MaxProbes)
-                    {
-                        var avgPing = Math.Round(probes.Average(c => c));
-                        Data[steamId].LastAveragePing = avgPing;
+                    if (!Data.TryGetValue(steamId, out var data)) continue;
 
-                        if (avgPing > Config.MaxPing)
-                            Task.Run(() => { WarnOrDisconnectPlayer(steamId, avgPing); });
-                        probes.RemoveRange(0, probes.Count - Config.MaxProbes + 1);
+                    double avgPing;
+                    bool overLimit;
+                    lock (data)
+                    {
+                        if (data.Pings.Count < Config.MaxProbes) continue;
+
+                        avgPing = Math.Round(data.Pings.Average(c => c));
+                        data.LastAveragePing = avgPing;
+                        overLimit = avgPing > Config.MaxPing;
+
+                        var trim = data.Pings.Count - Config.MaxProbes + 1;
+                        if (trim > 0) data.Pings.RemoveRange(0, trim);
+                    }
+
+                    if (overLimit)
+                    {
+                        var capturedSteamId = steamId;
+                        var capturedPing = avgPing;
+                        Task.Run(() =>
+                        {
+                            try { WarnOrDisconnectPlayer(capturedSteamId, capturedPing); }
+                            catch (Exception ex)
+                            {
+                                SKOPingWatchPlugin.Log.Error(ex,
+                                    $"WarnOrDisconnectPlayer failed for steamId {capturedSteamId}.");
+                            }
+                        });
                     }
                 }
 
-            Thread.Sleep(Config.CheckIntervalMin * 60 * 1000);
+            Thread.Sleep(Math.Max(1, Config.CheckIntervalMin) * 60 * 1000);
         }
 
         public void WarnOrDisconnectPlayer(ulong steamId, double ping)
         {
-            var warningCount = Data[steamId].Warnings.Count;
+            if (!Data.TryGetValue(steamId, out var data)) return;
+
             var player = PlayerUtils.GetIdentityByNameOrId(steamId.ToString());
+            if (player == null) return;
+
+            int warningCount;
+            lock (data) { warningCount = data.Warnings.Count; }
+
             if (warningCount < Config.MaxWarnings)
             {
                 if (Config.ShowLogWarnings)
@@ -128,7 +177,7 @@ namespace SKO.PingWatch.Modules
 
                 if (Config.MaxReconnectionsAllowed > 0)
                     ChatUtils.SendTo(player.IdentityId,
-                        $"Reconnections: {Data[steamId].Connections}/{Config.MaxReconnectionsAllowed}");
+                        $"Reconnections: {data.Connections}/{Config.MaxReconnectionsAllowed}");
 
                 ChatUtils.SendTo(player.IdentityId, "Please fix your ping or you will");
                 ChatUtils.SendTo(player.IdentityId, "get auto-kicked.");
@@ -139,7 +188,7 @@ namespace SKO.PingWatch.Modules
 
                     if (Config.KickPlayer && Config.MaxReconnectionsAllowed > 0)
                     {
-                        var reconnectionsLeft = Config.MaxReconnectionsAllowed - Data[steamId].Connections;
+                        var reconnectionsLeft = Config.MaxReconnectionsAllowed - data.Connections;
                         NotificationUtils.SendTo(player.IdentityId,
                             $"You have {reconnectionsLeft} reconnection(s) left.", 10);
                         if (reconnectionsLeft == 0)
@@ -153,12 +202,12 @@ namespace SKO.PingWatch.Modules
                 }
 
                 SoundUtils.SendTo(player.IdentityId);
-                Data[steamId].Warnings.Add(DateTime.Now);
+                lock (data) { data.Warnings.Add(DateTime.Now); }
             }
             else
             {
                 var isKick = Config.KickPlayer && (Config.MaxReconnectionsAllowed < 1 ||
-                                                   (Config.MaxReconnectionsAllowed > 0 && Data[steamId].Connections >=
+                                                   (Config.MaxReconnectionsAllowed > 0 && data.Connections >=
                                                        Config.MaxReconnectionsAllowed));
 
                 if (Config.ShowLogWarnings)
@@ -176,22 +225,27 @@ namespace SKO.PingWatch.Modules
                     if (isKick)
                     {
                         MyMultiplayer.Static.KickClient(steamId);
-                        Data.Remove(steamId);
+                        Data.TryRemove(steamId, out _);
                     }
                     else
                     {
                         MyMultiplayer.Static.KickClient(steamId, true, false);
-                        Data[steamId].Warnings.Clear();
-                        Data[steamId].Pings.Clear();
-                        Data[steamId].Connections++;
+                        lock (data)
+                        {
+                            data.Warnings.Clear();
+                            data.Pings.Clear();
+                            data.Connections++;
+                        }
                     }
 
                     ChatUtils.SendTo(0, "High Ping Watch:");
                     ChatUtils.SendTo(0,
                         $"{(isKick ? "Kicking" : "Disconnecting")} {player.DisplayName} (Ping {ping}ms.)");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    SKOPingWatchPlugin.Log.Error(ex,
+                        $"Failed to {(isKick ? "kick" : "disconnect")} {player.DisplayName} ({steamId}).");
                 }
             }
         }

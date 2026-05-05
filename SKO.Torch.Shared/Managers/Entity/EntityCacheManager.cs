@@ -26,7 +26,7 @@ namespace SKO.Torch.Shared.Managers.Entity
 
         public EntityCacheManager()
         {
-            var dict = MyEntities.GetEntities().ToDictionary(c => c.EntityId, c => c as T);
+            var dict = MyEntities.GetEntities().OfType<T>().ToDictionary(c => c.EntityId, c => c);
             Entities = new ConcurrentDictionary<long, T>(dict);
 
             // Set events to add/remove entities.
@@ -64,12 +64,9 @@ namespace SKO.Torch.Shared.Managers.Entity
 
         private void OnOnEntityAdd(IMyEntity obj)
         {
-            if (obj != null)
-                if (!Entities.ContainsKey(obj.EntityId))
-                {
-                    Entities[obj.EntityId] = obj as T;
-                    EntityAdded?.Invoke(Entities[obj.EntityId]);
-                }
+            if (!(obj is T typed)) return;
+            if (Entities.TryAdd(typed.EntityId, typed))
+                EntityAdded?.Invoke(typed);
         }
 
         private void OnOnEntityRemove(IMyEntity obj)

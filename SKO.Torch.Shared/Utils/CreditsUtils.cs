@@ -49,7 +49,7 @@ namespace SKO.Torch.Shared.Utils
             // Try to add to the faction first the player has one.
             if (addToFaction)
             {
-                var faction = FactionUtils.GetFactionById(playerId);
+                var faction = FactionUtils.GetFactionOfPlayer(playerId);
                 if (faction != null)
                 {
                     faction.RequestChangeBalance(creditsToAdd);

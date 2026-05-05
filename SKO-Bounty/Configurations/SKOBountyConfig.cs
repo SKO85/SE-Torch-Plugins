@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Torch;
+﻿using Torch;
 
 namespace SKO.Bounty.Configurations
 {
@@ -14,7 +13,7 @@ namespace SKO.Bounty.Configurations
         public int ClaimingCommission { get; set; } = 10;
         public int FinishedContractsToKeep { get; set; } = 20;
 
-        [XmlIgnore] public bool MustClaimContract { get; set; } = false;
+        public bool MustClaimContract { get; set; } = false;
 
         public void Validate()
         {

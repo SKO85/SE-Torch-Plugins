@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using Sandbox.Game.Entities;
+using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using IMyShipConnector = Sandbox.ModAPI.IMyShipConnector;
 
@@ -12,6 +13,7 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
     public class DisableConnectorThrowOutModule : PluginExtensionModule<SKOTweaksPlugin>
     {
         private Timer _checkTimer;
+        private bool _started;
 
         public DisableConnectorThrowOutModule(SKOTweaksPlugin pluginInstance) : base(pluginInstance)
         {
@@ -19,29 +21,51 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         protected override void InitializeModule()
         {
-            // Timers.
-            if (MainModule.Config.DisableConnectorThrowOut.DisableTimerSeconds > 0)
+            ApplyConfig(MainModule.Config.DisableConnectorThrowOut.DisableTimerSeconds);
+        }
+
+        /// <summary>
+        ///     Re-applies the timer interval / on-off state from config. Safe to call from <c>!sko-tweaks config reload</c>.
+        /// </summary>
+        public void ApplyConfig(int disableTimerSeconds)
+        {
+            if (disableTimerSeconds <= 0)
             {
-                _checkTimer = new Timer(TimeSpan.FromSeconds(MainModule.Config.DisableConnectorThrowOut.DisableTimerSeconds).TotalMilliseconds);
+                _checkTimer?.Stop();
+                return;
+            }
+
+            if (_checkTimer == null)
+            {
+                _checkTimer = new Timer();
                 _checkTimer.Elapsed += OnCheckTimerElapsed;
             }
+
+            _checkTimer.Interval = TimeSpan.FromSeconds(disableTimerSeconds).TotalMilliseconds;
+            if (_started) _checkTimer.Start();
         }
 
         public override void Start()
         {
+            _started = true;
             _checkTimer?.Start();
         }
 
         public override void Stop()
         {
+            _started = false;
             _checkTimer?.Stop();
             base.Stop();
         }
 
         private void OnCheckTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (MainModule.Config.PluginEnabled && MainModule.EntityManager != null)
-                Fix(MainModule.EntityManager.GetOf<MyCubeGrid>().ToHashSet());
+            // Timer.Elapsed runs on a ThreadPool thread; marshal game-state work to the main thread.
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                if (MainModule.Config.PluginEnabled && MainModule.EntityManager != null)
+                    Fix(MainModule.EntityManager.GetOf<MyCubeGrid>().ToHashSet());
+            });
         }
 
         private void Fix(HashSet<MyCubeGrid> grids)

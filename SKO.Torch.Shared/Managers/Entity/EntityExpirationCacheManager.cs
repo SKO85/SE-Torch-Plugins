@@ -8,8 +8,8 @@ namespace SKO.Torch.Shared.Managers.Entity
     {
         public long EntityId;
         public T Entity;
-        public TimeSpan ExpiresAt;
-        public TimeSpan SetAt;
+        public DateTime ExpiresAt;
+        public DateTime SetAt;
         public int IntervalSeconds;
     }
 
@@ -33,10 +33,9 @@ namespace SKO.Torch.Shared.Managers.Entity
         {
             try
             {
-                if (Data.ContainsKey(id))
+                if (Data.TryGetValue(id, out var item))
                 {
-                    var item = Data[id];
-                    if (DateTime.Now.TimeOfDay.Subtract(item.ExpiresAt).TotalSeconds >= 0)
+                    if (DateTime.UtcNow >= item.ExpiresAt)
                         Data.TryRemove(id, out _);
                     else
                         return false;
@@ -55,14 +54,14 @@ namespace SKO.Torch.Shared.Managers.Entity
             {
                 if (entity != null)
                 {
-                    var interval = cacheIntervalSeconds.HasValue ? cacheIntervalSeconds.Value : DefaultIntervalSeconds;
-                    var currentTime = DateTime.Now.TimeOfDay;
+                    var interval = cacheIntervalSeconds ?? DefaultIntervalSeconds;
+                    var now = DateTime.UtcNow;
 
                     Data[entity.EntityId] = new EntityExpirationCacheData<T>
                     {
                         EntityId = entity.EntityId,
-                        SetAt = currentTime,
-                        ExpiresAt = currentTime.Add(TimeSpan.FromSeconds(interval)),
+                        SetAt = now,
+                        ExpiresAt = now.AddSeconds(interval),
                         Entity = entity,
                         IntervalSeconds = interval
                     };

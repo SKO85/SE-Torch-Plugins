@@ -47,7 +47,10 @@ namespace SKO.GridPCULimiter.Patch
             }
 
             var steamId = MyEventContext.Current.Sender.Value;
-            var playerId = PlayerUtils.GetIdentityByNameOrId(steamId.ToString()).IdentityId;
+            var identity = PlayerUtils.GetIdentityByNameOrId(steamId.ToString());
+            if (identity == null) return true;
+
+            var playerId = identity.IdentityId;
             var player = PlayerUtils.GetPlayer(playerId);
             if (player != null && PlayerUtils.IsAdmin(player) &&
                 PlayerUtils.IsPCULimitIgnored(player.SteamUserId)) return true;

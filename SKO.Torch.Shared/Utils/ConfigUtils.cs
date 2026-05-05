@@ -1,70 +1,145 @@
-﻿using System;
+using NLog;
+using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using Torch;
 
 namespace SKO.Torch.Shared.Utils
 {
+    /// <summary>
+    ///     JSON configuration persistence (Newtonsoft.Json). Falls back to XmlSerializer once for legacy
+    ///     files written by earlier versions of the plugin suite — those are migrated to JSON on the
+    ///     first load and the original XML is preserved as <c>&lt;file&gt;.xml-backup</c>.
+    /// </summary>
     public static class ConfigUtils
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
+        {
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         /// <summary>
-        ///     Generic Configuration/Data Load function to retreive data from specified file in the specified type.
+        ///     Generic Configuration/Data Load function to retrieve data from the specified file in the specified type.
+        ///     Reads JSON. If an existing file is in the legacy XML format, it is migrated to JSON automatically.
         /// </summary>
-        /// <typeparam name="T">The type of your configuration or data object</typeparam>
-        /// <param name="plugin">Instance to the plugin</param>
-        /// <param name="fileName">Name of the file to use</param>
-        /// <returns></returns>
         public static T Load<T>(TorchPluginBase plugin, string fileName) where T : new()
         {
             var filePath = Path.Combine(plugin.StoragePath, fileName);
-            var config = new T();
 
+            if (!File.Exists(filePath))
+            {
+                var defaults = new T();
+                Save(plugin, defaults, fileName);
+                return defaults;
+            }
+
+            string text;
             try
             {
-                if (File.Exists(filePath))
-                    using (var streamReader = new StreamReader(filePath))
-                    {
-                        var xmlSerializer = new XmlSerializer(typeof(T));
-                        config = (T)xmlSerializer.Deserialize(streamReader);
-                    }
-                else
-                    Save(plugin, config, fileName);
+                text = File.ReadAllText(filePath);
             }
-            catch
+            catch (Exception ex)
             {
-                Save(plugin, config, fileName);
+                Log.Error(ex,
+                    $"Failed to read config '{fileName}' for plugin '{plugin.GetType().Name}'. Using defaults.");
+                return new T();
             }
 
-            return config;
+            // JSON files start with '{' or '[' — XML files start with '<'.
+            var trimmed = text.TrimStart();
+            var looksLikeJson = trimmed.Length > 0 && (trimmed[0] == '{' || trimmed[0] == '[');
+
+            if (looksLikeJson)
+            {
+                try
+                {
+                    var loaded = JsonConvert.DeserializeObject<T>(text, JsonSettings);
+                    return loaded ?? new T();
+                }
+                catch (Exception ex)
+                {
+                    return MoveCorruptAside<T>(plugin, filePath, fileName, ex);
+                }
+            }
+
+            // Legacy XML — migrate to JSON.
+            T migrated;
+            try
+            {
+                using (var reader = new StringReader(text))
+                {
+                    var xmlSerializer = new XmlSerializer(typeof(T));
+                    migrated = (T)xmlSerializer.Deserialize(reader);
+                }
+            }
+            catch (Exception ex)
+            {
+                return MoveCorruptAside<T>(plugin, filePath, fileName, ex);
+            }
+
+            // Preserve the XML before overwriting with JSON.
+            var backup = filePath + ".xml-backup";
+            try
+            {
+                if (File.Exists(backup)) File.Delete(backup);
+                File.Move(filePath, backup);
+                Log.Info(
+                    $"Migrated config '{fileName}' for plugin '{plugin.GetType().Name}' from XML to JSON. " +
+                    $"Original XML preserved as '{Path.GetFileName(backup)}'.");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn(ex,
+                    $"Couldn't preserve XML backup for '{fileName}'; proceeding to overwrite with JSON.");
+            }
+
+            Save(plugin, migrated, fileName);
+            return migrated;
         }
 
         /// <summary>
-        ///     Saves the specified data instance to a file.
+        ///     Saves the specified data instance to a file as JSON.
         /// </summary>
-        /// <typeparam name="T">The type of the data to save.</typeparam>
-        /// <param name="plugin">Instance reference to your plugin</param>
-        /// <param name="data">The actual data instance</param>
-        /// <param name="fileName">Name of the file to store to</param>
-        /// <returns></returns>
         public static bool Save<T>(TorchPluginBase plugin, T data, string fileName) where T : new()
         {
+            var filePath = Path.Combine(plugin.StoragePath, fileName);
             try
             {
-                var filePath = Path.Combine(plugin.StoragePath, fileName);
-                using (var streamWriter = new StreamWriter(filePath))
-                {
-                    var xmlSerializer = new XmlSerializer(typeof(T));
-                    xmlSerializer.Serialize(streamWriter, data);
-                }
-
+                var json = JsonConvert.SerializeObject(data, JsonSettings);
+                File.WriteAllText(filePath, json);
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignored
+                Log.Error(ex,
+                    $"Failed to save config '{fileName}' for plugin '{plugin.GetType().Name}'.");
+                return false;
+            }
+        }
+
+        private static T MoveCorruptAside<T>(TorchPluginBase plugin, string filePath, string fileName, Exception ex)
+            where T : new()
+        {
+            var backup = filePath + ".broken-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            try
+            {
+                File.Move(filePath, backup);
+                Log.Error(ex,
+                    $"Failed to load config '{fileName}' for plugin '{plugin.GetType().Name}'. " +
+                    $"Moved corrupt file to '{Path.GetFileName(backup)}'. Using defaults.");
+            }
+            catch (Exception moveEx)
+            {
+                Log.Error(ex,
+                    $"Failed to load config '{fileName}' for plugin '{plugin.GetType().Name}'. " +
+                    $"Also failed to move corrupt file aside ({moveEx.Message}). Using defaults.");
             }
 
-            return false;
+            return new T();
         }
     }
 }

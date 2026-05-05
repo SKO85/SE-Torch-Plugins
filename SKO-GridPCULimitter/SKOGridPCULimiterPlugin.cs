@@ -121,7 +121,10 @@ namespace SKO.GridPCULimiter
                                 }
                             }
 
-                        if (numOfConnectedSubGrids > 0 && numOfConnectedSubGrids % 2 == 0) numOfConnectedSubGrids /= 2;
+                        // Each connection contributes a connector on both sides, so halve.
+                        // Round up so an odd raw count (one side excluded by the trigger filter) doesn't under-report.
+                        if (numOfConnectedSubGrids > 0)
+                            numOfConnectedSubGrids = (numOfConnectedSubGrids + 1) / 2;
 
                         if (numOfConnectedSubGrids + 1 > Config.MaxNumberOfConnectedGrids)
                             if (MyAPIGateway.Entities.GetEntityById(entityId) is IMyShipConnector connector)
@@ -240,19 +243,26 @@ namespace SKO.GridPCULimiter
             if (Config.DisableWeldersWithinMeters <= 0 || block == null)
                 return;
 
-            // Search sphere for welders.
-            var sphere = new BoundingSphereD(block.WorldPosition, Config.DisableWeldersWithinMeters);
-            var list = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere);
-            if (list == null) return;
+            // Welders are blocks on grids, not top-level entities — iterate grids in the sphere
+            // and check their welder blocks against the actual radius.
+            var radius = Config.DisableWeldersWithinMeters;
+            var center = block.WorldPosition;
+            var sphere = new BoundingSphereD(center, radius);
+            var entitiesInSphere = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere);
+            if (entitiesInSphere == null) return;
 
-            // Get welders in the list of blocks.
-            var welders = list.Where(c => c is IMyShipWelder welder && welder.Enabled).ToList();
-            if (welders.Count <= 0) return;
+            foreach (var grid in entitiesInSphere.OfType<IMyCubeGrid>())
+            {
+                var welderBlocks = GridUtils.GetBlocks<IMyShipWelder>(grid);
+                foreach (var welderSlim in welderBlocks)
+                {
+                    var welder = welderSlim.FatBlock as IMyShipWelder;
+                    if (welder == null || !welder.Enabled) continue;
 
-            // Disable welder.
-            foreach (var welder in welders.Cast<IMyShipWelder>())
-                if (welder.Enabled)
-                    welder.Enabled = false;
+                    if ((welder.GetPosition() - center).Length() <= radius)
+                        welder.Enabled = false;
+                }
+            }
         }
 
         private void OnUnloading()

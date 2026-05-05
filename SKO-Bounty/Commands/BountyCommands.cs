@@ -134,12 +134,6 @@ namespace SKO.Bounty.Commands
                 creditsRequired = (long)Math.Round(contract.RewardAmount + commissionRequired);
             }
 
-            // Claim the contract.
-            lock (BountyModule.Contracts)
-            {
-                contract.ClaimedById = Context.Player.IdentityId;
-            }
-
             // Check balance.
             if (creditsRequired > 0 && !CreditsUtils.HasSufficientCredits(Context.Player.IdentityId, creditsRequired))
             {
@@ -148,10 +142,23 @@ namespace SKO.Bounty.Commands
                 return;
             }
 
-            if (creditsRequired > 0 && CreditsUtils.RemoveCredits(Context.Player.IdentityId, creditsRequired))
+            // Deduct commission first so a failed deduction doesn't leave the contract claimed.
+            if (creditsRequired > 0)
             {
+                if (!CreditsUtils.RemoveCredits(Context.Player.IdentityId, creditsRequired))
+                {
+                    Context.Respond("Failed to deduct claim commission. Try again later.");
+                    return;
+                }
+
                 Context.Respond("Contract claim commission payed!");
                 Context.Respond($"Amount: {string.Format("{0:n0}", creditsRequired)}");
+            }
+
+            // Claim the contract only after payment has cleared.
+            lock (BountyModule.ContractsLock)
+            {
+                contract.ClaimedById = Context.Player.IdentityId;
             }
 
             if (BountyModule.SaveContracts())
@@ -162,6 +169,12 @@ namespace SKO.Bounty.Commands
             else
             {
                 Context.Respond("An error occured while saving the claim.");
+
+                // Roll back the in-memory claim so the next attempt can succeed.
+                lock (BountyModule.ContractsLock)
+                {
+                    contract.ClaimedById = 0;
+                }
 
                 if (creditsRequired > 0)
                 {
@@ -352,6 +365,17 @@ Eliminate the target and claim your reward!
                                 $"A bounty contract on your head just got removed {target.DisplayName}!", 10);
                         SoundUtils.SendToAll();
                     });
+                }
+                else
+                {
+                    SKOBountyPlugin.Log.Warn(
+                        $"Refund failed for {Context.Player.DisplayName} ({Context.Player.IdentityId}) " +
+                        $"on contract removal for target {target.DisplayName} ({target.IdentityId}). " +
+                        $"Amount: {creditsToReturn}.");
+
+                    Context.Respond($"The contract on {target.DisplayName} has been removed.");
+                    Context.Respond($"However, the refund of {string.Format("{0:n0}", creditsToReturn)} credits failed.");
+                    Context.Respond("Please contact an administrator.");
                 }
             }
             else

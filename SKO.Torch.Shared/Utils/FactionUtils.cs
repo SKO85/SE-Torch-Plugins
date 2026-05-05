@@ -59,7 +59,7 @@ namespace SKO.Torch.Shared.Utils
         {
             var factionA = GetFactionOfPlayer(playerA_Id);
             var factionB = GetFactionOfPlayer(playerB_Id);
-            return factionA == factionB;
+            return factionA != null && factionB != null && factionA == factionB;
         }
 
         public static bool ExistsFaction(long factionId)

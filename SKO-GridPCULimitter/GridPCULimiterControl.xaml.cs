@@ -112,7 +112,8 @@ namespace SKO.GridPCULimiter
                         if (!Plugin.Config.ExemptSteamIds.Contains(steamId))
                         {
                             Plugin.Config.ExemptSteamIds.Add(steamId);
-                            MessageBox.Show("Steam ID added successfully!", "Success",
+                            Plugin.Save();
+                            MessageBox.Show("Steam ID added and saved.", "Success",
                                 MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         else
@@ -148,7 +149,8 @@ namespace SKO.GridPCULimiter
                     if (result == MessageBoxResult.Yes)
                     {
                         Plugin.Config.ExemptSteamIds.Remove(steamId);
-                        MessageBox.Show("Steam ID removed successfully!", "Success",
+                        Plugin.Save();
+                        MessageBox.Show("Steam ID removed and saved.", "Success",
                             MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }

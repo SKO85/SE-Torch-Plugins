@@ -64,24 +64,15 @@ namespace SKO.Torch.Shared.Managers.Grid
         public static Dictionary<long, T> GetBlocks<T>(long gridEntityId, string subTypeContains = null)
             where T : IMyCubeBlock
         {
-            if (Blocks.ContainsKey(gridEntityId))
-            {
-                var grid = MyEntities.GetEntities().OfType<MyCubeGrid>()
-                    .FirstOrDefault(c => c.EntityId == gridEntityId);
-                if (grid != null)
-                {
-                    grid.RaiseGridChanged();
-                    return grid.GetBlocks().Where(c => c.FatBlock != null).Select(c => c.FatBlock).OfType<T>().Where(
-                            c => string.IsNullOrEmpty(subTypeContains) || (!string.IsNullOrEmpty(subTypeContains) &&
-                                                                           c.BlockDefinition.SubtypeName.Contains(
-                                                                               subTypeContains,
-                                                                               StringComparison
-                                                                                   .InvariantCultureIgnoreCase)))
-                        .ToDictionary(c => c.EntityId, c => c);
-                }
-            }
+            if (!Blocks.TryGetValue(gridEntityId, out var gridBlocks))
+                return new Dictionary<long, T>();
 
-            return new Dictionary<long, T>();
+            return gridBlocks.Values
+                .OfType<T>()
+                .Where(c => string.IsNullOrEmpty(subTypeContains)
+                            || c.BlockDefinition.SubtypeName.IndexOf(
+                                subTypeContains, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                .ToDictionary(c => c.EntityId, c => c);
         }
     }
 }

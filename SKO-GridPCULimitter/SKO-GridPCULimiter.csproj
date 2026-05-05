@@ -17,7 +17,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -110,8 +110,8 @@
   <Import Project="..\SKO.Torch.Shared\SKO.Torch.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>set BINDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\bin\$(TargetName)\
-set PLUGINSDIR=D:\Git\GitHub\SKO85\SE\SE-Torch-Plugins\_Torch\Plugins\
+    <PostBuildEvent>set BINDIR=$(SolutionDir)bin\$(TargetName)\
+set PLUGINSDIR=$(SolutionDir)_Torch\Plugins\
 del /s %25BINDIR%25
 sleep 3
 mkdir %25BINDIR%25

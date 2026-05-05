@@ -25,17 +25,21 @@ namespace SKO.Bounty.Utils
             { '~', 18 }, { '\\', 12 }, { '\'', 6 }
         };
 
+        // Used for any character not in FontD (non-ASCII, smart-quotes, emoji, etc.).
+        // Approximates a "wide letter" so layout still roughly aligns.
+        private const int DefaultCharWidth = 17;
+
         public static int GetWordTotalWidth(string word)
         {
             var width = 0;
             foreach (var ch in word)
-                width += FontD[ch] + 1;
+                width += (FontD.TryGetValue(ch, out var w) ? w : DefaultCharWidth) + 1;
             return width;
         }
 
         public static float AlignWord(StringBuilder addTo, string word, float maxChars, char fillChar = ' ')
         {
-            var fillCharWidth = FontD[fillChar];
+            var fillCharWidth = FontD.TryGetValue(fillChar, out var fw) ? fw : DefaultCharWidth;
             var maxWidth = fillCharWidth * maxChars;
             var width = GetWordTotalWidth(word);
 

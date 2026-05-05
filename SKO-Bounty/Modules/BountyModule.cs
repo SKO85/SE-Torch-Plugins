@@ -23,9 +23,18 @@ namespace SKO.Bounty.Modules
         public static SKOBountyConfig Config = new SKOBountyConfig();
         public static BountyContracts Contracts = new BountyContracts();
 
+        // Lock sentinels — never lock on Config / Contracts directly: those references are
+        // reassigned by LoadConfig / LoadContracts, which would silently break mutual exclusion.
+        public static readonly object ContractsLock = new object();
+        public static readonly object ConfigLock = new object();
+
+        private static bool _eventsInitialized;
+
         public static void InitializeEvents()
         {
+            if (_eventsInitialized) return;
             MyAPIGateway.Session.DamageSystem.RegisterDestroyHandler(96, (target, info) => OnDamage(target, ref info));
+            _eventsInitialized = true;
         }
 
         public static void DebugKillTypes(object obj)
@@ -67,15 +76,13 @@ namespace SKO.Bounty.Modules
             {
                 if (attackEntity is IMyCubeBlock)
                 {
-                    var cube = attackEntity is MyCubeBlock
-                        ? attackEntity as MyCubeBlock
-                        : attackEntity as MyFunctionalBlock;
-                    if (cube.CubeGrid != null)
+                    var cube = attackEntity as MyCubeBlock;
+                    if (cube?.CubeGrid != null)
                     {
                         // First, try to find the controlling player (pilot).
-                        if (cube.CubeGrid.HasMainCockpit() && cube.CubeGrid.MainCockpit != null)
+                        if (cube.CubeGrid.HasMainCockpit()
+                            && cube.CubeGrid.MainCockpit is IMyShipController shipController)
                         {
-                            var shipController = cube.CubeGrid.MainCockpit as IMyShipController;
                             if (shipController.ControllerInfo?.ControllingIdentityId > 0)
                                 killer = PlayerUtils.GetPlayer(shipController.ControllerInfo.ControllingIdentityId);
                         }
@@ -172,32 +179,34 @@ namespace SKO.Bounty.Modules
 
                     if (killer != null)
                     {
+                        // Find a claimable contract without mutating it yet — payout must succeed first.
                         PlayerBountyContract claimedContract = null;
-                        lock (Contracts)
+                        lock (ContractsLock)
                         {
                             foreach (var contract in contracts)
-                                // Check if the contract can be claimed.
                                 if (CanClaim(targetPlayer, killer, contract))
                                 {
-                                    contract.DateFinished = DateTime.UtcNow;
-                                    contract.State = BountyContractState.Done;
-                                    contract.KilledById = killer.IdentityId;
-
                                     claimedContract = contract;
                                     break;
                                 }
                         }
 
-                        // Do we have found a claimed contract?
                         if (claimedContract != null)
                         {
                             if (Config.Debug) SKOBountyPlugin.Log.Warn("Contract found!");
 
-                            // Save the changes.
-                            SaveContracts();
-
                             if (CreditsUtils.AddCredits(killer.IdentityId, claimedContract.RewardAmount))
                             {
+                                // Finalize the contract only after the reward has cleared.
+                                lock (ContractsLock)
+                                {
+                                    claimedContract.DateFinished = DateTime.UtcNow;
+                                    claimedContract.State = BountyContractState.Done;
+                                    claimedContract.KilledById = killer.IdentityId;
+                                }
+
+                                SaveContracts();
+
                                 if (Config.Debug)
                                     SKOBountyPlugin.Log.Warn(
                                         $"Credits added {killer.DisplayName}: {claimedContract.RewardAmount}!");
@@ -229,7 +238,11 @@ namespace SKO.Bounty.Modules
                             }
                             else
                             {
-                                if (Config.Debug) SKOBountyPlugin.Log.Warn("Cannot add credits!");
+                                // Leave the contract Active so it can be retried — don't write Done to disk.
+                                SKOBountyPlugin.Log.Warn(
+                                    $"Bounty payout failed for {killer.DisplayName} ({killer.IdentityId}) " +
+                                    $"on contract for target {targetPlayer.DisplayName} ({targetPlayer.IdentityId}). " +
+                                    $"Reward: {claimedContract.RewardAmount}. Contract left Active for retry.");
                             }
                         }
                         else
@@ -282,7 +295,7 @@ namespace SKO.Bounty.Modules
 
         public static void LoadConfig()
         {
-            lock (Config)
+            lock (ConfigLock)
             {
                 Config = ConfigUtils.Load<SKOBountyConfig>(SKOBountyPlugin.Instance, ConfigFile);
                 Config.Validate();
@@ -291,7 +304,7 @@ namespace SKO.Bounty.Modules
 
         public static bool SaveConfig()
         {
-            lock (Config)
+            lock (ConfigLock)
             {
                 Config.Validate();
                 return ConfigUtils.Save(SKOBountyPlugin.Instance, Config, ConfigFile);
@@ -300,7 +313,7 @@ namespace SKO.Bounty.Modules
 
         public static void LoadContracts()
         {
-            lock (Contracts)
+            lock (ContractsLock)
             {
                 Contracts = ConfigUtils.Load<BountyContracts>(SKOBountyPlugin.Instance, ContractsFile);
             }
@@ -308,7 +321,7 @@ namespace SKO.Bounty.Modules
 
         public static bool SaveContracts()
         {
-            lock (Contracts)
+            lock (ContractsLock)
             {
                 CleanContracts();
                 return ConfigUtils.Save(SKOBountyPlugin.Instance, Contracts, ContractsFile);
@@ -317,25 +330,36 @@ namespace SKO.Bounty.Modules
 
         public static void CleanContracts()
         {
-            var contracts = Contracts.PlayerContracts.Where(c => c.State == BountyContractState.Done).ToList();
-            if (contracts.Count > Config.FinishedContractsToKeep)
+            lock (ContractsLock)
             {
-                var toRemove = contracts.Count - Config.FinishedContractsToKeep;
-                contracts.RemoveRange(0, toRemove);
+                var done = Contracts.PlayerContracts
+                    .Where(c => c.State == BountyContractState.Done)
+                    .OrderBy(c => c.DateFinished)
+                    .ToList();
+
+                var toRemove = done.Count - Config.FinishedContractsToKeep;
+                if (toRemove <= 0) return;
+
+                for (var i = 0; i < toRemove; i++)
+                    Contracts.PlayerContracts.Remove(done[i]);
             }
         }
 
         public static bool AddPlayerContract(PlayerBountyContract contract)
         {
-            if (ExistsPlayerContract(contract.TargetPlayerId, contract.ContractorPlayerId))
-                return false;
-
-            lock (Contracts)
+            // Atomic check-and-add to avoid a TOCTOU window between Exists and Add.
+            lock (ContractsLock)
             {
-                Contracts.PlayerContracts.Add(contract);
-            }
+                var exists = Contracts.PlayerContracts.Any(c =>
+                    c.State == BountyContractState.Active
+                    && c.TargetPlayerId == contract.TargetPlayerId
+                    && c.ContractorPlayerId == contract.ContractorPlayerId);
 
-            return true;
+                if (exists) return false;
+
+                Contracts.PlayerContracts.Add(contract);
+                return true;
+            }
         }
 
         public static bool RemovePlayerContract(long targetId, long contractorId,
@@ -345,7 +369,7 @@ namespace SKO.Bounty.Modules
             if (contract == null)
                 return false;
 
-            lock (Contracts)
+            lock (ContractsLock)
             {
                 return Contracts.PlayerContracts.Remove(contract);
             }
@@ -354,7 +378,11 @@ namespace SKO.Bounty.Modules
         public static List<PlayerBountyContract> GetPlayerContractsForTarget(long targetId,
             BountyContractState state = BountyContractState.Active)
         {
-            return Contracts.PlayerContracts.Where(c => c.State == state && c.TargetPlayerId == targetId).ToList();
+            lock (ContractsLock)
+            {
+                return Contracts.PlayerContracts
+                    .Where(c => c.State == state && c.TargetPlayerId == targetId).ToList();
+            }
         }
 
         public static bool ExistsPlayerContract(long targetId, long contractorId,
@@ -366,18 +394,25 @@ namespace SKO.Bounty.Modules
         public static PlayerBountyContract GetPlayerContract(long targetId, long contractorId,
             BountyContractState state = BountyContractState.Active)
         {
-            var contract = Contracts.PlayerContracts
-                .FirstOrDefault(c =>
-                    c.State == state && c.TargetPlayerId == targetId && c.ContractorPlayerId == contractorId);
-            return contract;
+            lock (ContractsLock)
+            {
+                return Contracts.PlayerContracts
+                    .FirstOrDefault(c =>
+                        c.State == state && c.TargetPlayerId == targetId && c.ContractorPlayerId == contractorId);
+            }
         }
 
         public static StringBuilder GetContractsListOutput()
         {
-            var activeContracts = Contracts.PlayerContracts.Where(c => c.State == BountyContractState.Active)
-                .OrderByDescending(c => c.DateCreated).ToList();
-            var doneContracts = Contracts.PlayerContracts.Where(c => c.State == BountyContractState.Done)
-                .OrderByDescending(c => c.DateFinished).ToList();
+            List<PlayerBountyContract> activeContracts;
+            List<PlayerBountyContract> doneContracts;
+            lock (ContractsLock)
+            {
+                activeContracts = Contracts.PlayerContracts.Where(c => c.State == BountyContractState.Active)
+                    .OrderByDescending(c => c.DateCreated).ToList();
+                doneContracts = Contracts.PlayerContracts.Where(c => c.State == BountyContractState.Done)
+                    .OrderByDescending(c => c.DateFinished).ToList();
+            }
 
             var sb = new StringBuilder();
             if (activeContracts.Count > 0)

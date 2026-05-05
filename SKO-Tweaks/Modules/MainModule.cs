@@ -15,6 +15,9 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         public MainModule(SKOTweaksPlugin pluginInstance, string configFile = null) : base(pluginInstance, configFile)
         {
+            // Subscribe before InitConfig() runs so the initial LoadConfig() invocation also reaches OnConfigLoaded.
+            ConfigLoaded += OnConfigLoaded;
+
             SafeZoneModule = new SafeZoneModule(pluginInstance);
             ShareInertiaTensorModule = new ShareInertiaTensorModule(pluginInstance);
             DisableConnectorThrowOutModule = new DisableConnectorThrowOutModule(pluginInstance);
@@ -22,8 +25,6 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         protected override void InitializeModule()
         {
-            ConfigLoaded += OnConfigLoaded;
-
             if (Config.FixDuplicateEntityIds) EntityDuplicatesFix.Fix();
 
             // Initialize the entities cache manager.
@@ -38,6 +39,7 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
         private void OnConfigLoaded(PluginConfig config)
         {
             SafeZoneModule?.SetInterval(config.SafeZones.CheckIntervalSeconds);
+            DisableConnectorThrowOutModule?.ApplyConfig(config.DisableConnectorThrowOut.DisableTimerSeconds);
         }
 
         public override void Start()
@@ -49,7 +51,9 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         public override void Stop()
         {
-            ConfigLoaded -= OnConfigLoaded;
+            // Don't unsubscribe ConfigLoaded here — the subscription is set up in the constructor
+            // (lives with the MainModule instance) so that subsequent !reload commands still reach
+            // OnConfigLoaded after a session restart.
             SafeZoneModule?.Stop();
             ShareInertiaTensorModule?.Stop();
             DisableConnectorThrowOutModule?.Stop();

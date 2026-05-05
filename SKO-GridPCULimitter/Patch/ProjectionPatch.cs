@@ -39,6 +39,12 @@ namespace SKO.GridPCULimiter.Patch
                 return false;
             }
 
+            if (projectedGrids == null || projectedGrids.Count == 0)
+            {
+                SKOGridPCULimiterPlugin.Log.Warn("PrefixNewBlueprint: projectedGrids is empty");
+                return false;
+            }
+
             var grid = projectedGrids[0];
             if (grid == null)
             {

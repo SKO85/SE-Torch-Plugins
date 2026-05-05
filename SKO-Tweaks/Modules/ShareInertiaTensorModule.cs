@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using SKO.Torch.Plugins.Tweaks.Config;
@@ -17,7 +16,8 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         public override void Start()
         {
-            Task.Run(() =>
+            // Grid / block / terminal-block APIs are main-thread-only — schedule onto the game thread.
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             {
                 try
                 {

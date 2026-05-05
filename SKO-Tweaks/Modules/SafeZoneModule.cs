@@ -45,8 +45,12 @@ namespace SKO.Torch.Plugins.Tweaks.Modules
 
         private void OnCheckTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (MainModule.Config.PluginEnabled && MainModule.EntityManager != null)
-                Fix(MainModule.EntityManager.GetOf<MySafeZone>().ToHashSet());
+            // Timer.Elapsed runs on a ThreadPool thread; marshal game-state work to the main thread.
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                if (MainModule.Config.PluginEnabled && MainModule.EntityManager != null)
+                    Fix(MainModule.EntityManager.GetOf<MySafeZone>().ToHashSet());
+            });
         }
 
         public override void Start()
